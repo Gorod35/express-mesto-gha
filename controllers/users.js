@@ -9,9 +9,16 @@ const getUsers = (req, res, next) => {
 const getUserById = (req, res, next) => {
   const { userId } = req.params;
   return User.findById(userId)
-    .then((user) => res.status(200).send(user))
+    // eslint-disable-next-line consistent-return
+    .then((user) => {
+      if (user) {
+        res.status(200).send(user);
+      } else {
+        return res.status(404).send({ message: 'Пользователь по указанному _id не найден.' });
+      }
+    })
     .catch((err) => {
-      if (err.name === 'CastError') return res.status(404).send({ message: 'Пользователь по указанному _id не найден.' });
+      if (err.name === 'CastError') return res.status(400).send({ message: 'Неверно указан id' });
       return next(err);
     });
 };
