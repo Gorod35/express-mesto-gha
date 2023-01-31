@@ -18,18 +18,18 @@ const createCard = (req, res, next) => {
 };
 
 const deleteCardById = (req, res, next) => {
-  const ownerId = req.user._id;
   const { cardId } = req.params;
   return Card.findById(cardId)
     // eslint-disable-next-line consistent-return
     .then((card) => {
-      if (String(card.owner) === ownerId) {
-        return card.remove();
+      if (card) {
+        card.remove();
+      } else {
+        return res.status(404).send({ message: 'Некорректные данные.' });
       }
     })
-    .then((card) => res.status(200).send(card))
     .catch((err) => {
-      if (err.name === 'CastError') return res.status(404).send({ message: 'Карточка с указанным _id не найдена.' });
+      if (err.name === 'CastError') return res.status(400).send({ message: 'Карточка с указанным _id не найдена.' });
       return next(err);
     });
 };
