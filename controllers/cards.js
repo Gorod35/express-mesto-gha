@@ -62,10 +62,16 @@ const deleteCardLikesById = (req, res, next) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => res.status(200).send(card))
+    // eslint-disable-next-line consistent-return
+    .then((card) => {
+      if (card) {
+        res.status(200).send(card);
+      } else {
+        return res.status(404).send({ message: 'Передан несуществующий _id карточки.' });
+      }
+    })
     .catch((err) => {
-      if (err.name === 'CastError') return res.status(404).send({ message: 'Передан несуществующий _id карточки.' });
-      if (err.name === 'ValidationError') return res.status(400).send({ message: 'Переданы некорректные данные для снятия лайка.' });
+      if (err.name === 'CastError') return res.status(400).send({ message: 'Переданы некорректные данные для постановки лайка.' });
       return next(err);
     });
 };
