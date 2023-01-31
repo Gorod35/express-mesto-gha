@@ -23,7 +23,7 @@ const deleteCardById = (req, res, next) => {
     // eslint-disable-next-line consistent-return
     .then((card) => {
       if (card) {
-        card.remove();
+        card.remove().then(() => res.status(200).send({ data: card }));
       } else {
         return res.status(404).send({ message: 'Некорректные данные.' });
       }
