@@ -1,10 +1,16 @@
 const express = require('express');
+const { celebrate, Joi, errors } = require('celebrate');
 
 const app = express();
+require('dotenv').config();
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
+const { createUser, login } = require('./controllers/users');
+const auth = require('./middlewares/auth');
+const linkCheck = require('./constants/constant');
+const NotFoundError = require('./errors/not-found-err');
 
 const { PORT = 3000 } = process.env;
 
@@ -15,30 +21,39 @@ app.use(bodyParser.json({ type: 'application/*+json' }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '63d7fa5e06402847282b459e',
-  };
+app.post('/signup', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+    avatar: Joi.string().pattern(linkCheck),
+    email: Joi.string().required().email(),
+    password: Joi.string().required(),
+  }),
+}), createUser);
 
-  next();
-});
+app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required(),
+  }),
+}), login);
+
+app.use(auth);
 
 app.use('/users', usersRouter);
 app.use('/cards', cardsRouter);
 
-// eslint-disable-next-line consistent-return
-app.use((err, req, res, next) => {
-  const isNotFound = err.message.indexOf('not found');
-  const isCastError = err.message.indexOf('Cast to ObjectId failed');
-  if (err.message && (isNotFound || isCastError)) {
-    return next();
-  }
+app.use(errors());
 
-  res.status(500).send({ message: 'Ошибка сервера' });
+app.use('*', (req, res, next) => {
+  next(new NotFoundError('Запрашиваемый ресурс не найден'));
 });
 
-app.use((req, res) => {
-  res.status(404).send({ message: 'Передан некорректный запрос.' });
+// eslint-disable-next-line consistent-return, no-unused-vars
+app.use((err, req, res, next) => {
+  const { statusCode = 500, message } = err;
+
+  res.status(statusCode).send({ message: statusCode === 500 ? 'На сервере произошла ошибка' : message });
 });
 
 app.listen(PORT, () => {
