@@ -32,9 +32,10 @@ const deleteCardById = (req, res, next) => {
       if (String(card.owner) === ownerId) {
         return card.remove();
       }
-      throw new NotOwnerError('Невозможно удалить чужую карточку.');
+      next(new NotOwnerError('Невозможно удалить чужую карточку.'));
     })
     .then((card) => res.status(200).send(card))
+    // eslint-disable-next-line no-unused-vars
     .catch((err) => next(new NotFoundError('Передан невалидный id.')));
 };
 
