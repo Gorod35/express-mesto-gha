@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const Card = require('../models/card');
 const NotFoundError = require('../errors/not-found-err');
-const NotAutorizedError = require('../errors/not-authorized-err');
 const NotOwnerError = require('../errors/not-owner-err');
 const BadRequestError = require('../errors/bad-request-err');
 
@@ -36,12 +35,7 @@ const deleteCardById = (req, res, next) => {
       throw new NotOwnerError('Невозможно удалить чужую карточку.');
     })
     .then((card) => res.status(200).send(card))
-    .catch((err) => {
-      if (err instanceof mongoose.Error.CastError) {
-        return next(new NotFoundError('Передан невалидный id.'));
-      }
-      return next(err);
-    });
+    .catch((err) => next(new NotFoundError('Передан невалидный id.')));
 };
 
 const putCardLikesById = (req, res, next) => {

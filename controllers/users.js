@@ -5,6 +5,7 @@ const User = require('../models/user');
 const BadRequestError = require('../errors/bad-request-err');
 const NotFoundError = require('../errors/not-found-err');
 const AlreadyExistsError = require('../errors/already-exists-err');
+const NotAutorizedError = require('../errors/not-authorized-err');
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 
@@ -48,7 +49,13 @@ const createUser = (req, res, next) => {
       about: req.body.about,
       avatar: req.body.avatar,
     }))
-    .then((user) => res.status(200).send(user))
+    .then((user) => res.status(200).send({
+      email: user.email,
+      name: user.name,
+      about: user.about,
+      avatar: user.avatar,
+      _id: user._id,
+    }))
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
         return next(new BadRequestError('Переданы некорректные данные при создании пользователя.'));
@@ -99,7 +106,8 @@ const login = (req, res, next) => {
       const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'some-secret-key', { expiresIn: '7d' });
       res.send({ token });
     })
-    .catch(next);
+    // eslint-disable-next-line no-unused-vars
+    .catch((err) => next(new NotAutorizedError('Неправильный логин или пароль')));
 };
 
 module.exports = {
