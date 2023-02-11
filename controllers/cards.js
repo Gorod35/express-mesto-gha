@@ -29,14 +29,23 @@ const deleteCardById = (req, res, next) => {
   return Card.findById(cardId)
     // eslint-disable-next-line consistent-return
     .then((card) => {
-      if (String(card.owner) === ownerId) {
-        return card.remove();
+      if (card) {
+        if (String(card.owner) === ownerId) {
+          return card.remove();
+        }
+        throw new NotOwnerError('Невозможно удалить чужую карточку.');
+      } else {
+        throw new NotFoundError('Карточка с указанным _id не найдена');
       }
-      next(new NotOwnerError('Невозможно удалить чужую карточку.'));
     })
     .then((card) => res.status(200).send(card))
     // eslint-disable-next-line no-unused-vars
-    .catch((err) => next(new NotFoundError('Передан невалидный id.')));
+    .catch((err) => {
+      if (err instanceof mongoose.Error.CastError) {
+        return next(new BadRequestError('Передан невалидный id.'));
+      }
+      return next(err);
+    });
 };
 
 const putCardLikesById = (req, res, next) => {
