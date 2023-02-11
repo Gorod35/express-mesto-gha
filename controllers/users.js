@@ -5,7 +5,6 @@ const User = require('../models/user');
 const BadRequestError = require('../errors/bad-request-err');
 const NotFoundError = require('../errors/not-found-err');
 const AlreadyExistsError = require('../errors/already-exists-err');
-const NotAutorizedError = require('../errors/not-authorized-err');
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 
@@ -107,7 +106,7 @@ const login = (req, res, next) => {
       res.send({ token });
     })
     // eslint-disable-next-line no-unused-vars
-    .catch((err) => next(new NotAutorizedError('Неправильный логин или пароль')));
+    .catch((err) => next(err));
 };
 
 module.exports = {
