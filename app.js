@@ -4,7 +4,6 @@ const { celebrate, Joi, errors } = require('celebrate');
 const app = express();
 require('dotenv').config();
 const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
 const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
 const { createUser, login } = require('./controllers/users');
@@ -17,8 +16,6 @@ const { PORT = 3000 } = process.env;
 mongoose.set('strictQuery', false);
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
-app.use(bodyParser.json({ type: 'application/*+json' }));
-app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.post('/signup', celebrate({
